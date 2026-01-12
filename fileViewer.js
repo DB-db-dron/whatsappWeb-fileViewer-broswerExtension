@@ -30,9 +30,9 @@ class FileHandlerRegistry {
     }
 }
 
-const registry = new FileHandlerRegistry();
+const fileHandler = new FileHandlerRegistry();
 
-registry.register({
+fileHandler.register({
     type: 'PDF',
     shouldHandle: (anchor) => anchor.download && anchor.download.toLowerCase().endsWith('.pdf'),
     handle: (anchor) => {
@@ -46,8 +46,30 @@ registry.register({
     }
 });
 
+fileHandler.register({
+    type: 'CSV',
+    shouldHandle: (anchor) => anchor.download && anchor.download.toLowerCase().endsWith('.csv'),
+    handle: (anchor) => {
+        console.debug(`[${_NAME}] Intercepted CSV download:`, anchor.download);
+        const blobUrl = anchor.href;
+        if (blobUrl) {
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+                fetch(blobUrl)
+                    .then(response => response.text())
+                    .then(csvText => {
+                        CsvTools.view(newWindow, csvText, anchor.download);
+                    })
+                    .catch(err => console.error(`[${_NAME}] Error parsing CSV:`, err));
+            }
+            return true;
+        }
+        return false;
+    }
+});
+
 HTMLAnchorElement.prototype.click = function () {
-    if (registry.process(this)) {
+    if (fileHandler.process(this)) {
         return;
     }
     return originalClick.apply(this, arguments);
