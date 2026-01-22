@@ -82,6 +82,20 @@ fileHandler.register({
     }
 })
 
+fileHandler.register({
+    type: 'TXT',
+    shouldHandle: (anchor) => anchor.download && anchor.download.toLowerCase().endsWith('.txt'),
+    handle: (anchor) => {
+        console.debug(`[${_NAME}] Intercepted TXT download:`, anchor.download);
+        const blobUrl = anchor.href;
+        if (blobUrl) {
+            const newWindow = window.open(blobUrl, '_blank');
+            return true;
+        }
+        return false;
+    }
+})
+
 HTMLAnchorElement.prototype.click = function () {
     if (fileHandler.process(this)) {
         return;
