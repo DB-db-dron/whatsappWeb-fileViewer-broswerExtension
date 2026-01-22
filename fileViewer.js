@@ -68,6 +68,20 @@ fileHandler.register({
     }
 });
 
+fileHandler.register({
+    type: 'JSON',
+    shouldHandle: (anchor) => anchor.download && anchor.download.toLowerCase().endsWith('.json'),
+    handle: (anchor) => {
+        console.debug(`[${_NAME}] Intercepted JSON download:`, anchor.download);
+        const blobUrl = anchor.href;
+        if (blobUrl) {
+            const newWindow = window.open(blobUrl, '_blank');
+            return true;
+        }
+        return false;
+    }
+})
+
 HTMLAnchorElement.prototype.click = function () {
     if (fileHandler.process(this)) {
         return;
